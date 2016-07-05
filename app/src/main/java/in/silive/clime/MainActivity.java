@@ -1,11 +1,11 @@
 package in.silive.clime;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -13,11 +13,12 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ResultReceiver;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -27,22 +28,26 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.johnhiott.darkskyandroidlib.ForecastApi;
+import com.johnhiott.darkskyandroidlib.RequestBuilder;
+import com.johnhiott.darkskyandroidlib.models.Request;
+import com.johnhiott.darkskyandroidlib.models.WeatherResponse;
 
-import java.io.IOException;
 import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private Location mLastLocation;
     Context context;
-    private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
+    double latitude, longitude;
     WeatherData weatherData;
     // UI elements
     LinearLayout weather_info;
@@ -50,12 +55,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     ImageView icon;
     ImageButton ref;
     TextView humidity, dew, cloud, precip, max_temp, min_temp;
+    String APIKey = "5b29d34aeee88dc47264e71ed058a592";
+    private Location mLastLocation;
+    // Google client to interact with Google API
+    private GoogleApiClient mGoogleApiClient;
+    private AddressResultReceiver mResultReceiver;
+    final boolean mAddressRequested =true;
+    static String mAddressOutput;
+    LocationRequest mLocationRequest;
+    boolean mRequestingLocationUpdates = true;
+    LocationListener mLocationListener;
+    String mLastUpdateTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d("TAG", "MainActivity created");
         context = getApplicationContext();
+        //Initializing the layout elements
         weather_info = (LinearLayout) findViewById(R.id.weather_info);
         current_time = (TextView) findViewById(R.id.current_time);
         current_time_min = (TextView) findViewById(R.id.current_time_min);
@@ -74,33 +92,80 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         sky_desc = (TextView) findViewById(R.id.sky_desc);
         icon = (ImageView) findViewById(R.id.icon);
         ref = (ImageButton) findViewById(R.id.ref);
-        //ref.setOnClickListener(this);
-        //check for connection
-        checkConnection();
-        weatherData = new WeatherData();
+        ref.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                displayLocation();
+                new GetData(context).execute();
+            }
+        });
+        Log.d("TAG", "Layout initialized");
 
         // First we need to check availability of play services
         if (checkPlayServices()) {
-
-            // Building the GoogleApi client
+            Log.d("TAG", "Play services available");
             buildGoogleApiClient();
+            Log.d("TAG", "Google aPI client built");
+        }
+        mLocationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                displayLocation();
+
+            }
+        };
+        weatherData = new WeatherData();
+        mResultReceiver = new AddressResultReceiver(new Handler());
+        Log.d("TAG", "Result receiver initialised");
+        ForecastApi.create(APIKey);
+        Log.d("TAG", "Weather API created");
+        new GetData(this).execute();
+        updateValuesFromBundle(savedInstanceState);
+
+    }
+    public void checkConnection() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+        if (info == null) {
+            Snackbar snackbar = Snackbar
+                    .make(weather_info, "No internet connection!", Snackbar.LENGTH_INDEFINITE)
+                    .setAction("RETRY", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+
+                            checkConnection();
+                        }
+                    });
+
+// Changing message text color
+            snackbar.setActionTextColor(Color.RED);
+
+// Changing action button text color
+            View sbView = snackbar.getView();
+            TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+            textView.setTextColor(Color.YELLOW);
+            snackbar.show();
+        } else {
+
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            }, 4000);
+
+
         }
 
-        // Show location button click listener
-        ref.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                displayLocation();
-            }
-        });
     }
 
-
-    private void displayLocation() {
+    void displayLocation() {
+        Log.d("TAG", "Getting location");
         if (Build.VERSION.SDK_INT >= 24 &&
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
@@ -108,17 +173,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 .getLastLocation(mGoogleApiClient);
 
         if (mLastLocation != null) {
-            double latitude = mLastLocation.getLatitude();
-            double longitude = mLastLocation.getLongitude();
-
-            lblLocation.setText(latitude + ", " + longitude);
-
+            latitude = mLastLocation.getLatitude();
+            longitude = mLastLocation.getLongitude();
+            Log.d("TAG", latitude + " " + longitude + "inside display");
+            //String place = GetCity(latitude, longitude);
+            startIntentService();
+            String place = mResultReceiver.getAddress();
+            Log.d("TAG", place+" ");
         } else {
-
-            lblLocation
-                    .setText("(Couldn't get the location. Make sure location is enabled on the device)");
+            Log.d("TAG", "no location");
         }
     }
+
 
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -127,13 +193,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 .addApi(LocationServices.API).build();
     }
 
+
     private boolean checkPlayServices() {
         GoogleApiAvailability api = GoogleApiAvailability.getInstance();
         int resultCode = api.isGooglePlayServicesAvailable(this);
 
         if (resultCode != ConnectionResult.SUCCESS) {
             if (api.isUserResolvableError(resultCode)) {
-                api.showErrorDialogFragment(this,resultCode,GoogleApiAvailability.GOOGLE_PLAY_SERVICES_VERSION_CODE);
+                api.showErrorDialogFragment(this, resultCode, GoogleApiAvailability.GOOGLE_PLAY_SERVICES_VERSION_CODE);
             } else {
                 Toast.makeText(getApplicationContext(),
                         "This device is not supported.", Toast.LENGTH_LONG)
@@ -172,11 +239,53 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         // Once connected with google api, get the location
         displayLocation();
+        if (mAddressRequested) {
+            startIntentService();
+        }
     }
 
     @Override
     public void onConnectionSuspended(int arg0) {
         mGoogleApiClient.connect();
+    }
+
+    protected void startIntentService() {
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        intent.putExtra(Constants.RECEIVER, mResultReceiver);
+        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
+        startService(intent);
+    }
+
+    /*public void fetchAddressButtonHandler(View view) {
+        if (mGoogleApiClient.isConnected() && mLastLocation != null) {
+            startIntentService();
+        }
+        *//*updateUIWidgets();*//*
+    }*/
+    @SuppressLint("ParcelCreator")
+    class AddressResultReceiver extends ResultReceiver {
+        String str;
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+            Log.d("TAG","result received");
+            mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            Log.d("TAG","result received "+ mAddressOutput);
+            str = mAddressOutput;
+            //displayAddressOutput();
+            if (resultCode == Constants.SUCCESS_RESULT) {
+                Toast.makeText(context,"address_found",Toast.LENGTH_SHORT).show();
+            }
+        }
+        public String getAddress(){
+            Log.d("TAG","result received getter : "+ mAddressOutput);
+
+            return str;
+        }
     }
     public void updateTimeOnEachSecond() {
 
@@ -198,9 +307,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                         current_time.setText(String.valueOf(hrs + " :"));
                         current_time_min.setText(String.valueOf(min + " :"));
                         current_time_sec.setText(String.valueOf(sec));
-                        mLastUpdateTime = String.valueOf(hrs+":");
+                        /*mLastUpdateTime = String.valueOf(hrs+":");
                         mLastUpdateTime.concat(String.valueOf(min + " :"));
-                        mLastUpdateTime.concat(String.valueOf(sec));
+                        mLastUpdateTime.concat(String.valueOf(sec));*/
                     }
                 });
 
@@ -208,110 +317,47 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         }, 0, 1000);
 
     }
-    public void checkConnection() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo info = connectivityManager.getActiveNetworkInfo();
-        if (info == null) {
-            Snackbar snackbar = Snackbar
-                    .make(weather_info, "No Internet Connection", Snackbar.LENGTH_LONG)
-                    .setAction("RETRY", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-
-
-                            checkConnection();
-                        }
-                    });
-
-// Changing message text color
-            snackbar.setActionTextColor(Color.RED);
-
-// Changing action button text color
-            View sbView = snackbar.getView();
-            TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-            textView.setTextColor(Color.YELLOW);
-            snackbar.show();
-        } else {
-
-
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    /*cornr.setVisibility(View.VISIBLE);
-                    Intent intent = new Intent(Splash.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();*/
-                }
-            }, 2000);
-
-
-        }
-
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putBoolean("REQUESTING_LOCATION_UPDATES_KEY",
+                mRequestingLocationUpdates);
+        savedInstanceState.putParcelable("LOCATION_KEY", mLastLocation);
+        savedInstanceState.putString("LAST_UPDATED_TIME_STRING_KEY", mLastUpdateTime);
+        super.onSaveInstanceState(savedInstanceState);
     }
-    public String GetCity(double latitude, double longitude) {
-        Log.d("TAG", latitude + " " + longitude + "one");
-        /*if (latitude == 0 || longitude == 0) {
-            latitude = getLocation.getLatitude();
-            longitude = getLocation.getLongitude();
-        }*/
-        Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-        StringBuilder builder = new StringBuilder();
-        try {
-            List<Address> address = geoCoder.getFromLocation(latitude, longitude, 1);
-            Log.d("TAG", latitude + " " + longitude);
-            int maxLines = address.get(0).getMaxAddressLineIndex();
-            //int maxLines = 2;
-
-            for (int i = 0; i < maxLines; i++) {
-                Log.d("TAG", maxLines + " ");
-                String addressStr = address.get(0).getAddressLine(i);
-                Log.d("TAG", maxLines + " ");
-                if ((i >= 1) && (i <= (maxLines - 1))) {
-                    builder.append(addressStr);
-                    builder.append(" ");
-                }
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            if (savedInstanceState.keySet().contains("REQUESTING_LOCATION_UPDATES_KEY")) {
+                mRequestingLocationUpdates = savedInstanceState.getBoolean(
+                        "REQUESTING_LOCATION_UPDATES_KEY");
+                //setButtonsEnabledState();
+            }
+            if (savedInstanceState.keySet().contains("LOCATION_KEY")) {
+                mLastLocation = savedInstanceState.getParcelable("LOCATION_KEY");
+            }
+            if (savedInstanceState.keySet().contains("LAST_UPDATED_TIME_STRING_KEY")) {
+                mLastUpdateTime = savedInstanceState.getString(
+                        "LAST_UPDATED_TIME_STRING_KEY");
+                updateTimeOnEachSecond();
             }
 
-            String finalAddress = builder.toString(); //This is the complete address.
-            return finalAddress;
-
-        } catch (IOException e) {
-            // Handle IOException
-        } catch (NullPointerException e) {
-            // Handle NullPointerException
         }
-        return null;
-
     }
     //Class to get API data
     public class GetData extends AsyncTask<Void, Void, String> {
         ProgressDialog progressDialog;
 
 
+
         public GetData(Context c) {
             this.progressDialog = new ProgressDialog(c);
-            Log.d("TAG", lat + " " + lng + " inside GetData");
-
-            /*final GPSTracker gpsTracker = new GPSTracker(getApplicationContext());
-
-            if (gpsTracker.canGetLocation()) {
-
-                this.lat = gpsTracker.getLatitude();
-                this.lng = gpsTracker.getLongitude();
-            } else {
-                Log.d("TAG", " no gps");
-                DialogGps dialogGps = new DialogGps();
-                dialogGps.show(getFragmentManager(), "GPS Alert");
-                //gpsTracker.showSettingsAlert();
-            }*/
-            Log.d("TAG", lat + " " + lng + "inside getData");
+            Log.d("TAG", latitude + " " + longitude + "inside getData");
         }
 
         public void UpdateUI(WeatherData getData) {
             temp.setText(" " + getData.getTemperature());
             temp_unit.setText("C");
             sky_desc.setText(getData.getDesc());
-            city_text.setText(GetCity(lat, lng));
+            city_text.setText(mAddressOutput);
             hourly.setText(getData.getHrs());
             date_day.setText(getData.getMydate());
             cloud.setText("Pressure : " + getData.getPres());
@@ -332,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             super.onPreExecute();
             //progressDialog = new ProgressDialog(getApplicationContext());
             progressDialog.setMessage("Loading");
-            progressDialog.show();
+            //progressDialog.show();
         }
 
         @Override
@@ -345,12 +391,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         @Override
         protected String doInBackground(Void... params) {
 
-            Log.d("TAG", lat + "" + lng);
+            Log.d("TAG", latitude + "" + longitude);
 
             RequestBuilder weather = new RequestBuilder();
             Request request = new Request();
-            request.setLat(lat + "");
-            request.setLng(lng + "");
+            request.setLat(latitude + "");
+            request.setLng(longitude + "");
             request.setUnits(Request.Units.UK);
             request.setLanguage(Request.Language.ENGLISH);
             request.addExcludeBlock(Request.Block.CURRENTLY);
