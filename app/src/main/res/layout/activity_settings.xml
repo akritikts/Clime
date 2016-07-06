@@ -1,0 +1,78 @@
+<LinearLayout android:fitsSystemWindows="true"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    tools:context="in.silive.clime.Activities.Settings"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <android.support.v7.widget.Toolbar
+        android:background="?attr/colorPrimary"
+        android:id="@+id/toolbar"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_width="match_parent"
+        android:title="Clime"/>
+
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:gravity="left"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:padding="15dp"
+            android:text="Notifications"
+            android:textColor="#000000"
+            android:textSize="20sp" />
+
+        <CheckBox
+            android:id="@+id/notification_check"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.3"
+            android:layout_width="wrap_content"
+            android:padding="5dp" />
+    </LinearLayout>
+
+    <TextView
+        android:gravity="left"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:padding="15dp"
+        android:text="Privacy Policy"
+        android:textColor="#000000"
+        android:textSize="20sp" />
+
+    <TextView
+        android:gravity="left"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:padding="15dp"
+        android:text="Help Centre"
+        android:textColor="#000000"
+        android:textSize="20sp" />
+
+    <TextView
+        android:gravity="left"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:padding="15dp"
+        android:text="Send Feedback"
+        android:textColor="#000000"
+        android:textSize="20sp" />
+
+    <TextView
+        android:gravity="left"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:padding="15dp"
+        android:text="Open Source Licenses"
+        android:textColor="#000000"
+        android:textSize="20sp" />
+
+
+
+
+</LinearLayout>

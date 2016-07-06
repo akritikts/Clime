@@ -1,4 +1,4 @@
-package in.silive.clime;
+package in.silive.clime.Activities;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -18,12 +18,16 @@ import android.os.ResultReceiver;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,7 +35,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.johnhiott.darkskyandroidlib.ForecastApi;
 import com.johnhiott.darkskyandroidlib.RequestBuilder;
@@ -42,32 +45,42 @@ import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import in.silive.clime.Fragments.DialogSearch;
+import in.silive.clime.Models.Constants;
+import in.silive.clime.Fragments.DialogGPS;
+import in.silive.clime.Services.FetchAddressIntentService;
+import in.silive.clime.R;
+import in.silive.clime.Models.WeatherData;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     private static final String TAG = MainActivity.class.getSimpleName();
+    static String mAddressOutput;
+    final boolean mAddressRequested = true;
     Context context;
     double latitude, longitude;
     WeatherData weatherData;
     // UI elements
+    private Toolbar mToolbar;
     LinearLayout weather_info;
     TextView city_text, temp, temp_unit, sky_desc, current_time, date_day, current_time_min, current_time_sec, hourly;
     ImageView icon;
     ImageButton ref;
     TextView humidity, dew, cloud, precip, max_temp, min_temp;
     String APIKey = "5b29d34aeee88dc47264e71ed058a592";
+    ListAdapter mListAdapter;
+    boolean mRequestingLocationUpdates = true;
+    LocationListener mLocationListener;
+    String mLastUpdateTime;
+    String serach_city;
+    Bundle bundle;
     private Location mLastLocation;
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
     private AddressResultReceiver mResultReceiver;
-    final boolean mAddressRequested =true;
-    static String mAddressOutput;
-    LocationRequest mLocationRequest;
-    boolean mRequestingLocationUpdates = true;
-    LocationListener mLocationListener;
-    String mLastUpdateTime;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +89,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         Log.d("TAG", "MainActivity created");
         context = getApplicationContext();
         //Initializing the layout elements
+        mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+        mToolbar.setTitle("Clime");
+        bundle = new Bundle();
         weather_info = (LinearLayout) findViewById(R.id.weather_info);
         current_time = (TextView) findViewById(R.id.current_time);
         current_time_min = (TextView) findViewById(R.id.current_time_min);
@@ -102,9 +119,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             }
         });
         Log.d("TAG", "Layout initialized");
+        Toast.makeText(this, "Please wait for the data to finish loading", Toast.LENGTH_SHORT);
         updateValuesFromBundle(savedInstanceState);
         Log.d("TAG", "Updated layout from bundle");
         checkConnection();
+
 
         // First we need to check availability of play services
         if (checkPlayServices()) {
@@ -128,6 +147,39 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+           // mToolbar.setTitle("Clime");
+            Intent intent = new Intent(this,Settings.class);
+            startActivity(intent);
+            return true;
+        }
+        if (id == R.id.action_search){
+            DialogSearch dialogSearch = new DialogSearch();
+            dialogSearch.show(getFragmentManager(),"Select City");
+            serach_city = dialogSearch.getSearch();
+            Log.d("TAG","city recieved "+ serach_city);
+
+            return  true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
     public void checkConnection() {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
@@ -157,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                startIntentService();
+                    startIntentService();
                 }
             }, 2000);
 
@@ -173,10 +225,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-
         mLastLocation = LocationServices.FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
-
         if (mLastLocation != null) {
             latitude = mLastLocation.getLatitude();
             longitude = mLastLocation.getLongitude();
@@ -184,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             //String place = GetCity(latitude, longitude);
             startIntentService();
             String place = mResultReceiver.getAddress();
-            Log.d("TAG", place+" ");
+            Log.d("TAG", place + " ");
         } else {
             Log.d("TAG", "no location");
         }
@@ -197,10 +247,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API).build();
     }
-    public void showAlert(){
-        DialogGPS dialogGPS = new DialogGPS();
-        dialogGPS.show(getFragmentManager(),"Alert");
 
+    public void showAlert() {
+        DialogGPS dialogGPS = new DialogGPS();
+        dialogGPS.show(getFragmentManager(), "Alert");
     }
 
 
@@ -233,7 +283,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     protected void onResume() {
         super.onResume();
-
         checkPlayServices();
     }
 
@@ -252,6 +301,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         if (mAddressRequested) {
             startIntentService();
         }
+        //mListAdapter.setGoogleApiclient(mGoogleApiClient);
     }
 
     @Override
@@ -260,50 +310,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     }
 
     protected void startIntentService() {
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Log.d("TAG", "dialog");
             showAlert();
-        }
-        else {
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(Constants.RECEIVER, mResultReceiver);
-        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
-        startService(intent);
-    }}
-
-    /*public void fetchAddressButtonHandler(View view) {
-        if (mGoogleApiClient.isConnected() && mLastLocation != null) {
-            startIntentService();
-        }
-        *//*updateUIWidgets();*//*
-    }*/
-    @SuppressLint("ParcelCreator")
-    class AddressResultReceiver extends ResultReceiver {
-        String str;
-        public AddressResultReceiver(Handler handler) {
-            super(handler);
-        }
-
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-
-            Log.d("TAG","result received");
-            mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
-            Log.d("TAG","result received "+ mAddressOutput);
-            str = mAddressOutput;
-            //displayAddressOutput();
-            if (resultCode == Constants.SUCCESS_RESULT) {
-                Toast.makeText(context,"address_found",Toast.LENGTH_SHORT).show();
-            }
-        }
-        public String getAddress(){
-            Log.d("TAG","result received getter : "+ mAddressOutput);
-
-            return str;
+        } else {
+            Intent intent = new Intent(this, FetchAddressIntentService.class);
+            intent.putExtra(Constants.RECEIVER, mResultReceiver);
+            intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
+            startService(intent);
         }
     }
+
     public void updateTimeOnEachSecond() {
 
         Timer timer = new Timer();
@@ -334,6 +353,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         }, 0, 1000);
 
     }
+
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putBoolean("REQUESTING_LOCATION_UPDATES_KEY",
                 mRequestingLocationUpdates);
@@ -341,6 +361,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         savedInstanceState.putString("LAST_UPDATED_TIME_STRING_KEY", mLastUpdateTime);
         super.onSaveInstanceState(savedInstanceState);
     }
+
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             if (savedInstanceState.keySet().contains("REQUESTING_LOCATION_UPDATES_KEY")) {
@@ -359,10 +380,44 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         }
     }
+
+    /*public void fetchAddressButtonHandler(View view) {
+        if (mGoogleApiClient.isConnected() && mLastLocation != null) {
+            startIntentService();
+        }
+        *//*updateUIWidgets();*//*
+    }*/
+    @SuppressLint("ParcelCreator")
+    class AddressResultReceiver extends ResultReceiver {
+        String str;
+
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+            Log.d("TAG", "result received");
+            mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            Log.d("TAG", "result received " + mAddressOutput);
+            str = mAddressOutput;
+            //displayAddressOutput();
+            if (resultCode == Constants.SUCCESS_RESULT) {
+                Toast.makeText(context, "address_found", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        public String getAddress() {
+            Log.d("TAG", "result received getter : " + mAddressOutput);
+
+            return str;
+        }
+    }
+
     //Class to get API data
     public class GetData extends AsyncTask<Void, Void, String> {
         ProgressDialog progressDialog;
-
 
 
         public GetData(Context c) {
@@ -402,7 +457,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            progressDialog.dismiss();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    progressDialog.dismiss();
+                }
+            }, 2000);
+
         }
 
 

@@ -28,4 +28,5 @@ dependencies {
     compile 'android.zetterstrom.com.forecast:forecast:1.0.0'
     compile 'com.android.support:support-v4:24.0.0'
     compile 'com.android.support:design:24.0.0'
+    compile 'com.rengwuxian.materialedittext:library:2.1.4'
 }

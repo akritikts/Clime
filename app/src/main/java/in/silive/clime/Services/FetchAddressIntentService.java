@@ -1,4 +1,4 @@
-package in.silive.clime;
+package in.silive.clime.Services;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import in.silive.clime.Activities.MainActivity;
+import in.silive.clime.Models.Constants;
 
 /**
  * Created by akriti on 5/7/16.

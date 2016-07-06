@@ -1,10 +1,10 @@
-package in.silive.clime;
+package in.silive.clime.Models;
 
 /**
  * Created by akriti on 25/6/16.
  */
 public class WeatherData {
-    String desc;
+    String desc, city;
     String pres, prec, humid, dewp, hrs, mydate;
     double max, min, temperature;
 
@@ -86,5 +86,13 @@ public class WeatherData {
 
     public void setTemperature(double temperature) {
         this.temperature = temperature;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 }

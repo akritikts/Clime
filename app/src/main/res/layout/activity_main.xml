@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/weather_info"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="#ffffff"
-    tools:context=".MainActivity">
+    android:background="#B2EBF2"
+    tools:context=".Activities.MainActivity">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"/>
 
 
     <RelativeLayout
@@ -40,7 +41,8 @@
                     android:layout_margin="0dp"
                     android:padding="0dp"
                     android:textColor="#000000"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:text="No location Available"/>
 
             </LinearLayout>
 
@@ -70,7 +72,8 @@
                             android:padding="0dp"
                             android:textColor="#000000"
                             android:textSize="30sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:text="00.00"/>
 
                         <TextView
                             android:id="@+id/temp_unit"
@@ -79,7 +82,8 @@
                             android:layout_alignBaseline="@+id/temp"
                             android:layout_toRightOf="@+id/temp"
                             android:padding="0dp"
-                            android:textColor="#000000" />
+                            android:textColor="#000000"
+                            android:text="C"/>
 
                     </LinearLayout>
 
@@ -95,7 +99,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textColor="#000000"
-                            android:textSize="15sp" />
+                            android:textSize="15sp"
+                            android:text="Max T : 00.00"/>
 
                         <TextView
                             android:id="@+id/min_temp"
@@ -103,7 +108,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textColor="#000000"
-                            android:textSize="15sp" />
+                            android:textSize="15sp"
+                            android:text="Min T : 00.00"/>
 
                     </LinearLayout>
 
@@ -121,7 +127,8 @@
                         android:layout_height="wrap_content"
                         android:padding="0dp"
                         android:textColor="#000000"
-                        android:textSize="20sp" />
+                        android:textSize="20sp"
+                        android:text="No data available"/>
 
                 </LinearLayout>
 
@@ -146,7 +153,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:textColor="#000000"
-                        android:textSize="15sp" />
+                        android:textSize="15sp"
+                        android:text="Humidity :  0.0"/>
 
                     <TextView
                         android:id="@+id/cloud"
@@ -171,7 +179,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:textColor="#000000"
-                        android:textSize="15sp" />
+                        android:textSize="15sp"
+                        android:text="Precipitation : 0.0"/>
 
                     <TextView
                         android:id="@+id/dew"
@@ -179,7 +188,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:textColor="#000000"
-                        android:textSize="15sp" />
+                        android:textSize="15sp"
+                        android:text="DewPoint : 0.0"/>
 
 
                 </LinearLayout>
@@ -204,7 +214,8 @@
                         android:layout_alignParentBottom="true"
                         android:layout_alignParentLeft="true"
                         android:layout_gravity="center"
-                        android:src="@mipmap/refresh" />
+                        android:src="@mipmap/refresh"
+                        android:background="#B2EBF2"/>
 
                 </LinearLayout>
 
@@ -244,7 +255,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textColor="#000000"
-                            android:textSize="10dp" />
+                            android:textSize="10sp" />
 
                     </LinearLayout>
 
@@ -253,14 +264,27 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Last Updated : "
+                                android:textSize="12sp"/>
+                            <TextView
+                                android:id="@+id/date_day"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:text="unavailable"/>
 
-                        <TextView
-                            android:id="@+id/date_day"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:textColor="#000000"
-                            android:textSize="12dp" />
+                        </LinearLayout>
+
+
 
                     </LinearLayout>
 
@@ -298,7 +322,8 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:textColor="#000000"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:text="No description available"/>
 
         <android.support.v4.view.ViewPager
             android:id="@+id/pager"

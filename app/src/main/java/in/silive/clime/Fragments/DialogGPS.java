@@ -1,4 +1,4 @@
-package in.silive.clime;
+package in.silive.clime.Fragments;
 
 
 import android.app.DialogFragment;
@@ -9,6 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import in.silive.clime.R;
 
 
 /**

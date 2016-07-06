@@ -1,4 +1,4 @@
-package in.silive.clime;
+package in.silive.clime.Models;
 
 /**
  * Created by akriti on 5/7/16.
