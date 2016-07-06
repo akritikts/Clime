@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -19,6 +20,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -96,10 +98,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             @Override
             public void onClick(View view) {
                 displayLocation();
-                new GetData(context).execute();
+                new GetData(MainActivity.this).execute();
             }
         });
         Log.d("TAG", "Layout initialized");
+        updateValuesFromBundle(savedInstanceState);
+        Log.d("TAG", "Updated layout from bundle");
+        checkConnection();
 
         // First we need to check availability of play services
         if (checkPlayServices()) {
@@ -120,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         ForecastApi.create(APIKey);
         Log.d("TAG", "Weather API created");
         new GetData(this).execute();
-        updateValuesFromBundle(savedInstanceState);
+
 
     }
     public void checkConnection() {
@@ -152,9 +157,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-
+                startIntentService();
                 }
-            }, 4000);
+            }, 2000);
 
 
         }
@@ -191,6 +196,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API).build();
+    }
+    public void showAlert(){
+        DialogGPS dialogGPS = new DialogGPS();
+        dialogGPS.show(getFragmentManager(),"Alert");
+
     }
 
 
@@ -250,11 +260,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     }
 
     protected void startIntentService() {
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            Log.d("TAG", "dialog");
+            showAlert();
+        }
+        else {
         Intent intent = new Intent(this, FetchAddressIntentService.class);
         intent.putExtra(Constants.RECEIVER, mResultReceiver);
         intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
         startService(intent);
-    }
+    }}
 
     /*public void fetchAddressButtonHandler(View view) {
         if (mGoogleApiClient.isConnected() && mLastLocation != null) {
@@ -349,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 
         public GetData(Context c) {
-            this.progressDialog = new ProgressDialog(c);
+            this.progressDialog = new ProgressDialog(MainActivity.this);
             Log.d("TAG", latitude + " " + longitude + "inside getData");
         }
 
@@ -377,8 +394,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         protected void onPreExecute() {
             super.onPreExecute();
             //progressDialog = new ProgressDialog(getApplicationContext());
-            progressDialog.setMessage("Loading");
-            //progressDialog.show();
+            //progressDialog.setMessage("Loading");
+            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            progressDialog.show();
         }
 
         @Override

@@ -1,10 +1,12 @@
 package in.silive.clime;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.text.TextUtils;
@@ -20,6 +22,7 @@ import java.util.Locale;
  */
 public class FetchAddressIntentService extends IntentService {
     protected ResultReceiver mReceiver;
+    MainActivity mainActivity;
     public FetchAddressIntentService(String name) {
         super(name);
     }
@@ -31,6 +34,15 @@ public class FetchAddressIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            Log.d("TAG","dialog");
+            mainActivity = new MainActivity();
+            mainActivity.showAlert();
+
+        }
+
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         String errorMessage = "";
         mReceiver = intent.getParcelableExtra(Constants.RECEIVER);
@@ -48,11 +60,17 @@ public class FetchAddressIntentService extends IntentService {
         List<Address> addresses = null;
 
         try {
+            if (geocoder == null){
+                mainActivity = new MainActivity();
+                mainActivity.showAlert();
+            }
+            else if((location.getLatitude()!=0)&&(location.getLongitude()!=0)&&(geocoder!=null)) {
+
             addresses = geocoder.getFromLocation(
                     location.getLatitude(),
                     location.getLongitude(),
                     // In this sample, get just a single address.
-                    1);
+                    1);}
         } catch (IOException ioException) {
             // Catch network or other I/O problems.
             errorMessage = "service_not_available";
