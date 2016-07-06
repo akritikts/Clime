@@ -75,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     LocationListener mLocationListener;
     String mLastUpdateTime;
     String serach_city;
-    Bundle bundle;
     private Location mLastLocation;
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
@@ -92,7 +91,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         mToolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         mToolbar.setTitle("Clime");
-        bundle = new Bundle();
         weather_info = (LinearLayout) findViewById(R.id.weather_info);
         current_time = (TextView) findViewById(R.id.current_time);
         current_time_min = (TextView) findViewById(R.id.current_time_min);
@@ -170,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         if (id == R.id.action_search){
             DialogSearch dialogSearch = new DialogSearch();
             dialogSearch.show(getFragmentManager(),"Select City");
-            serach_city = dialogSearch.getSearch();
+            //serach_city = dialogSearch.getSearch();
             Log.d("TAG","city recieved "+ serach_city);
 
             return  true;

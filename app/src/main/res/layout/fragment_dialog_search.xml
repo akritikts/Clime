@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="in.silive.clime.Fragments.DialogSearch"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#B2EBF2">
 
     <com.rengwuxian.materialedittext.MaterialEditText
         android:layout_width="match_parent"

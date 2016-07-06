@@ -48,6 +48,7 @@ public class DialogSearch extends DialogFragment implements View.OnClickListener
                 search = city.getText().toString();
                 Log.d("TAG", "user's search request : " + search);
                 setSearch(search);
+                dismiss();
 
                 break;
             case R.id.cancel:
