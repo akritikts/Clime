@@ -57,23 +57,30 @@ public class FetchAddressIntentService extends IntentService {
         // Get the location passed to this service through an extra.
         Location location = intent.getParcelableExtra(
                 Constants.LOCATION_DATA_EXTRA);
+        Log.d("TAG",location+" location inside fetch address");
+
 
 
 
         List<Address> addresses = null;
 
         try {
-            if (geocoder == null){
-                mainActivity = new MainActivity();
-                mainActivity.showAlert();
-            }
-            else if((location.getLatitude()!=0)&&(location.getLongitude()!=0)&&(geocoder!=null)) {
+
+             if((location==null)) {
 
             addresses = geocoder.getFromLocation(
-                    location.getLatitude(),
-                    location.getLongitude(),
+                    20,
+                    80,
                     // In this sample, get just a single address.
                     1);}
+            else {
+                 addresses = geocoder.getFromLocation(
+                         location.getLatitude(),
+                         location.getLongitude(),
+                         // In this sample, get just a single address.
+                         1);
+
+             }
         } catch (IOException ioException) {
             // Catch network or other I/O problems.
             errorMessage = "service_not_available";
@@ -100,7 +107,7 @@ public class FetchAddressIntentService extends IntentService {
 
             // Fetch the address lines using getAddressLine,
             // join them, and send them to the thread.
-            for(int i = 1; i < address.getMaxAddressLineIndex(); i++) {
+            for(int i = 1; i < address.getMaxAddressLineIndex()-1; i++) {
                 addressFragments.add(address.getAddressLine(i));
             }
             Log.i("TAG", "address_found");

@@ -45,12 +45,13 @@ import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import in.silive.clime.Fragments.DialogGPS;
 import in.silive.clime.Fragments.DialogSearch;
 import in.silive.clime.Models.Constants;
-import in.silive.clime.Fragments.DialogGPS;
-import in.silive.clime.Services.FetchAddressIntentService;
-import in.silive.clime.R;
+import in.silive.clime.Models.GetCityLocation;
 import in.silive.clime.Models.WeatherData;
+import in.silive.clime.R;
+import in.silive.clime.Services.FetchAddressIntentService;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -62,8 +63,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     Context context;
     double latitude, longitude;
     WeatherData weatherData;
-    // UI elements
-    private Toolbar mToolbar;
     LinearLayout weather_info;
     TextView city_text, temp, temp_unit, sky_desc, current_time, date_day, current_time_min, current_time_sec, hourly;
     ImageView icon;
@@ -75,6 +74,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     LocationListener mLocationListener;
     String mLastUpdateTime;
     String serach_city;
+    int i;// flag for search city
+    GetCityLocation getCityLocation;
+    private Toolbar mToolbar;
     private Location mLastLocation;
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
@@ -88,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         Log.d("TAG", "MainActivity created");
         context = getApplicationContext();
         //Initializing the layout elements
-        mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         mToolbar.setTitle("Clime");
         weather_info = (LinearLayout) findViewById(R.id.weather_info);
@@ -145,12 +147,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -160,19 +164,41 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-           // mToolbar.setTitle("Clime");
-            Intent intent = new Intent(this,Settings.class);
+            // mToolbar.setTitle("Clime");
+            Intent intent = new Intent(this, Settings.class);
             startActivity(intent);
             return true;
         }
-        if (id == R.id.action_search){
+        if (id == R.id.action_search) {
+            Log.d("TAG", "search pressed");
             DialogSearch dialogSearch = new DialogSearch();
-            dialogSearch.show(getFragmentManager(),"Select City");
-            //serach_city = dialogSearch.getSearch();
-            Log.d("TAG","city recieved "+ serach_city);
+            dialogSearch.show(getFragmentManager(), "Select City");
+            Log.d("TAG", "dialog created");
+            dialogSearch.setListener(new DialogSearch.Listener() {
+                @Override
+                public void SetData(String data, int id) {
+                    serach_city = data;
+                    i = id;
+                    Log.d("TAG", "dialog values initialised");
+                    Log.d("TAG", "city received in MainAct" + serach_city);
+                    if (i == 1) {
+                        getCityLocation = new GetCityLocation(context, serach_city);
+                        latitude = getCityLocation.getLat();
+                        longitude = getCityLocation.getLng();
+                        mLastLocation = getCityLocation.getLocation();
+                        Log.d("TAG", latitude + " " + longitude + "inside the updated dialog");
+                        startIntentService();
+                        Log.d("TAG","intent service started after dialog");
+                    }
 
-            return  true;
+                }
+            });
+
+            //new GetData(context,2).execute();
+
+
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -310,14 +336,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     protected void startIntentService() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        Log.d("TAG","start service excites GetData");
+
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Log.d("TAG", "dialog");
             showAlert();
         } else {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            }, 2000);
             Intent intent = new Intent(this, FetchAddressIntentService.class);
             intent.putExtra(Constants.RECEIVER, mResultReceiver);
             intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
             startService(intent);
+            new GetData(context).execute();
         }
     }
 
@@ -416,10 +451,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     //Class to get API data
     public class GetData extends AsyncTask<Void, Void, String> {
         ProgressDialog progressDialog;
+        int flag;
 
 
         public GetData(Context c) {
             this.progressDialog = new ProgressDialog(MainActivity.this);
+            this.flag = flag;
             Log.d("TAG", latitude + " " + longitude + "inside getData");
         }
 
@@ -460,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 public void run() {
                     progressDialog.dismiss();
                 }
-            }, 2000);
+            }, 1000);
 
         }
 

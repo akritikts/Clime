@@ -3,6 +3,7 @@ package in.silive.clime.Models;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,13 +18,23 @@ import java.util.Locale;
  */
 public class GetCityLocation {
     public static double lat, lng;
+   public static Location location;
 
     public GetCityLocation(Context c, String city) {
+        Log.d("TAG","GetCity Location called");
         getAddressFromLocation(city, c, new Handler());
 
     }
 
-    public static double getLat() {
+    public  Location getLocation() {
+        return location;
+    }
+
+    public static void setLocation(Location location) {
+        GetCityLocation.location = location;
+    }
+
+    public  double getLat() {
         return lat;
     }
 
@@ -31,7 +42,7 @@ public class GetCityLocation {
         GetCityLocation.lat = lat;
     }
 
-    public static double getLng() {
+    public  double getLng() {
         return lng;
     }
 
@@ -57,6 +68,11 @@ public class GetCityLocation {
                         Log.d("TAG", "location inside GetCityLocation " + lat + " " + lng);
                         lat = address.getLatitude();
                         lng = address.getLongitude();
+                        setLat(lat);
+                        setLng(lng);
+                        location.setLatitude(lat);
+                        location.setLongitude(lng);
+                        setLocation(location);
                     }
                 } catch (IOException e) {
                     Log.e("TAG", "Unable to connect to Geocoder", e);
