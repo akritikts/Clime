@@ -9,7 +9,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.IOException;
@@ -107,13 +106,14 @@ public class FetchAddressIntentService extends IntentService {
 
             // Fetch the address lines using getAddressLine,
             // join them, and send them to the thread.
-            for(int i = 1; i < address.getMaxAddressLineIndex()-1; i++) {
-                addressFragments.add(address.getAddressLine(i));
+            StringBuilder strReturnedAddress = new StringBuilder("");
+
+            for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+                strReturnedAddress.append(address.getAddressLine(i)).append("\n");
             }
             Log.i("TAG", "address_found");
             deliverResultToReceiver(Constants.SUCCESS_RESULT,
-                    TextUtils.join(System.getProperty("line.separator"),
-                            addressFragments));
+                    strReturnedAddress.toString());
         }
     }
     private void deliverResultToReceiver(int resultCode, String message) {

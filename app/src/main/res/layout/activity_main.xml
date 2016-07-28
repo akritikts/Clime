@@ -312,7 +312,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="6"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="3dp">
 
         <TextView
@@ -325,24 +325,11 @@
             android:textSize="15sp"
             android:text="No description available"/>
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/pager"
+        <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!--<android.support.v4.view.PagerTitleStrip
-                android:id="@+id/pager_title_strip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                android:background="#E6E6E6"
-                android:paddingBottom="4dp"
-                android:paddingTop="4dp"
-                android:textColor="#fff" />-->
-
-
-        </android.support.v4.view.ViewPager>
-
+        </ListView>
 
     </LinearLayout>
 

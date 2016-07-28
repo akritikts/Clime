@@ -23,11 +23,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +40,7 @@ import com.johnhiott.darkskyandroidlib.models.Request;
 import com.johnhiott.darkskyandroidlib.models.WeatherResponse;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -58,6 +57,8 @@ import retrofit.client.Response;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static String LSummary[];
+    public static double LTemp[];
     static String mAddressOutput;
     final boolean mAddressRequested = true;
     Context context;
@@ -69,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     ImageButton ref;
     TextView humidity, dew, cloud, precip, max_temp, min_temp;
     String APIKey = "5b29d34aeee88dc47264e71ed058a592";
-    ListAdapter mListAdapter;
     boolean mRequestingLocationUpdates = true;
     LocationListener mLocationListener;
     String mLastUpdateTime;
@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         });
         Log.d("TAG", "Layout initialized");
         Toast.makeText(this, "Please wait for the data to finish loading", Toast.LENGTH_SHORT);
+
         updateValuesFromBundle(savedInstanceState);
         Log.d("TAG", "Updated layout from bundle");
         checkConnection();
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                         mLastLocation = getCityLocation.getLocation();
                         Log.d("TAG", latitude + " " + longitude + "inside the updated dialog");
                         startIntentService();
-                        Log.d("TAG","intent service started after dialog");
+                        Log.d("TAG", "intent service started after dialog");
                     }
 
                 }
@@ -336,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     protected void startIntentService() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        Log.d("TAG","start service excites GetData");
+        Log.d("TAG", "start service excites GetData");
 
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Log.d("TAG", "dialog");
@@ -433,6 +434,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
             Log.d("TAG", "result received");
             mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            city_text.setText(mAddressOutput);
             Log.d("TAG", "result received " + mAddressOutput);
             str = mAddressOutput;
             //displayAddressOutput();
@@ -464,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             temp.setText(" " + getData.getTemperature());
             temp_unit.setText("C");
             sky_desc.setText(getData.getDesc());
-            city_text.setText(mAddressOutput);
+
             hourly.setText(getData.getHrs());
             date_day.setText(getData.getMydate());
             cloud.setText("Pressure : " + getData.getPres());
@@ -484,8 +486,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         protected void onPreExecute() {
             super.onPreExecute();
             //progressDialog = new ProgressDialog(getApplicationContext());
-            //progressDialog.setMessage("Loading");
-            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            progressDialog.setMessage("Loading");
+            // progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             progressDialog.show();
         }
 
@@ -534,6 +536,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                     weatherData.setDewp(weatherResponse.getCurrently().getDewPoint());
                     weatherData.setMax(weatherResponse.getCurrently().getTemperatureMax());
                     weatherData.setMin(weatherResponse.getCurrently().getTemperatureMin());
+                    List list = weatherResponse.getHourly().getData();
+
+                    Log.d("Tag","List hourly"+ list);
                     UpdateUI(weatherData);
                 }
 
