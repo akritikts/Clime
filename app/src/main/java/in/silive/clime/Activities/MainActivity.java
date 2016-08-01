@@ -51,6 +51,8 @@ import java.util.TimerTask;
 import in.silive.clime.Adapters.VPagerAdapter;
 import in.silive.clime.Fragments.DialogGPS;
 import in.silive.clime.Fragments.DialogSearch;
+import in.silive.clime.Fragments.HourFragment;
+import in.silive.clime.Fragments.WeekFragment;
 import in.silive.clime.Models.Constants;
 import in.silive.clime.Models.GetCityLocation;
 import in.silive.clime.Models.WeatherData;
@@ -491,6 +493,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
                 @Override
                 public void onPageSelected(int position) {
+                    switch (position) {
+
+                        case 0:
+                            HourFragment fg = new HourFragment();
+                            fg.setList(list);
+
+
+                        case 1:
+                            WeekFragment wf = new WeekFragment();
+                            wf.setList(l);
+
+
+
+                    }
 
 
                 }
