@@ -7,6 +7,11 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.johnhiott.darkskyandroidlib.models.DataPoint;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import in.silive.clime.R;
 
 /**
@@ -14,23 +19,38 @@ import in.silive.clime.R;
  */
 public class HListAdapter extends BaseAdapter {
     LayoutInflater inflater;
+    List<DataPoint> list;
+    ArrayList<String> res_temp;
+    ArrayList<String> res_summary;
 
     public HListAdapter() {
     }
 
+    public HListAdapter(LayoutInflater inflater, List list) {
+        this.inflater = inflater;
+        this.list = list;
+    }
+
+
+    /*public HListAdapter(LayoutInflater inflater,ArrayList<String> res_summary, ArrayList<String> res_temp) {
+        this.inflater = inflater;
+        this.res_summary = res_summary;
+        this.res_temp = res_temp;
+    }
+*/
     @Override
     public int getCount() {
-        return 0;
+        return list.size();
     }
 
     @Override
     public Object getItem(int i) {
-        return null;
+        return i;
     }
 
     @Override
     public long getItemId(int i) {
-        return 0;
+        return i;
     }
 
     @Override
@@ -43,7 +63,10 @@ public class HListAdapter extends BaseAdapter {
         holder.h_summary = (TextView) view1.findViewById(R.id.h_summary);
         holder.h_time = (TextView) view1.findViewById(R.id.h_time);
         holder.h_img = (ImageView) view1.findViewById(R.id.h_img);
-        return view;
+        DataPoint dp =  list.get(i);
+        holder.h_temp.setText(String.valueOf(dp.getTemperature()));
+        holder.h_summary.setText(dp.getSummary());
+        return view1;
     }
 
     public class Holder {
@@ -52,6 +75,5 @@ public class HListAdapter extends BaseAdapter {
         TextView h_summary;
         TextView h_time;
         ImageView h_img;
-
     }
 }

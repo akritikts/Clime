@@ -17,12 +17,15 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -36,6 +39,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.johnhiott.darkskyandroidlib.ForecastApi;
 import com.johnhiott.darkskyandroidlib.RequestBuilder;
+import com.johnhiott.darkskyandroidlib.models.DataPoint;
 import com.johnhiott.darkskyandroidlib.models.Request;
 import com.johnhiott.darkskyandroidlib.models.WeatherResponse;
 
@@ -44,6 +48,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import in.silive.clime.Adapters.VPagerAdapter;
 import in.silive.clime.Fragments.DialogGPS;
 import in.silive.clime.Fragments.DialogSearch;
 import in.silive.clime.Models.Constants;
@@ -57,18 +62,20 @@ import retrofit.client.Response;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static String LSummary[];
-    public static double LTemp[];
+    public static String LSummary,LSummaryW;
+    public static String LTemp,LTempW;
+    public static List list,l;
     static String mAddressOutput;
     final boolean mAddressRequested = true;
     Context context;
     double latitude, longitude;
     WeatherData weatherData;
     LinearLayout weather_info;
-    TextView city_text, temp, temp_unit, sky_desc, current_time, date_day, current_time_min, current_time_sec, hourly;
+    TextView city_text, temp, temp_unit, sky_desc, current_time, date_day, current_time_min;
     ImageView icon;
     ImageButton ref;
-    TextView humidity, dew, cloud, precip, max_temp, min_temp;
+    TextView humidity, dew, cloud, precip;
+    ViewPager vw_pager;
     String APIKey = "5b29d34aeee88dc47264e71ed058a592";
     boolean mRequestingLocationUpdates = true;
     LocationListener mLocationListener;
@@ -76,12 +83,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     String serach_city;
     int i;// flag for search city
     GetCityLocation getCityLocation;
+    Animation animation;
+    VPagerAdapter vPagerAdapter;
     private Toolbar mToolbar;
     private Location mLastLocation;
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
     private AddressResultReceiver mResultReceiver;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,11 +101,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         mToolbar.setTitle("Clime");
+        animation = AnimationUtils.loadAnimation(this, R.anim.rotation);
         weather_info = (LinearLayout) findViewById(R.id.weather_info);
         current_time = (TextView) findViewById(R.id.current_time);
         current_time_min = (TextView) findViewById(R.id.current_time_min);
-        current_time_sec = (TextView) findViewById(R.id.current_time_sec);
-        hourly = (TextView) findViewById(R.id.hourly);
         date_day = (TextView) findViewById(R.id.date_day);
         city_text = (TextView) findViewById(R.id.city_text);
         temp = (TextView) findViewById(R.id.temp);
@@ -106,11 +113,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         dew = (TextView) findViewById(R.id.dew);
         precip = (TextView) findViewById(R.id.precip);
         cloud = (TextView) findViewById(R.id.cloud);
-        max_temp = (TextView) findViewById(R.id.max_temp);
-        min_temp = (TextView) findViewById(R.id.min_temp);
         sky_desc = (TextView) findViewById(R.id.sky_desc);
         icon = (ImageView) findViewById(R.id.icon);
+        vw_pager = (ViewPager) findViewById(R.id.vw_pager);
+
         ref = (ImageButton) findViewById(R.id.ref);
+        ref.setAnimation(animation);
+        animation.cancel();
         ref.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -119,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             }
         });
         Log.d("TAG", "Layout initialized");
-        Toast.makeText(this, "Please wait for the data to finish loading", Toast.LENGTH_SHORT);
+        Toast.makeText(this, "Please wait for the data to finish loading", Toast.LENGTH_SHORT).show();
 
         updateValuesFromBundle(savedInstanceState);
         Log.d("TAG", "Updated layout from bundle");
@@ -375,8 +384,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                     @Override
                     public void run() {
                         current_time.setText(String.valueOf(hrs + " :"));
-                        current_time_min.setText(String.valueOf(min + " :"));
-                        current_time_sec.setText(String.valueOf(sec));
+                        current_time_min.setText(String.valueOf(min));
                         /*mLastUpdateTime = String.valueOf(hrs+":");
                         mLastUpdateTime.concat(String.valueOf(min + " :"));
                         mLastUpdateTime.concat(String.valueOf(sec));*/
@@ -466,8 +474,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             temp.setText(" " + getData.getTemperature());
             temp_unit.setText("C");
             sky_desc.setText(getData.getDesc());
-
-            hourly.setText(getData.getHrs());
             date_day.setText(getData.getMydate());
             cloud.setText("Pressure : " + getData.getPres());
             Log.d("TAG", getData.getMax() + " " + getData.getMin() + "max min");
@@ -475,8 +481,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             precip.setText("Precipitation : " + getData.getPrec());
             humidity.setText("Humidity : " + getData.getHumid());
             dew.setText("Dew Point : " + getData.getDewp());
-            max_temp.setText("Max.T : " + getData.getMax());
-            min_temp.setText("Min.T : " + getData.getMin());
+            vPagerAdapter = new VPagerAdapter(getSupportFragmentManager(),list,l);
+            vw_pager.setAdapter(vPagerAdapter);
+            vw_pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+
+
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
+                }
+            });
             updateTimeOnEachSecond();
 
         }
@@ -489,6 +512,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             progressDialog.setMessage("Loading");
             // progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             progressDialog.show();
+            animation.start();
         }
 
         @Override
@@ -500,6 +524,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                     progressDialog.dismiss();
                 }
             }, 1000);
+            animation.cancel();
 
         }
 
@@ -536,10 +561,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                     weatherData.setDewp(weatherResponse.getCurrently().getDewPoint());
                     weatherData.setMax(weatherResponse.getCurrently().getTemperatureMax());
                     weatherData.setMin(weatherResponse.getCurrently().getTemperatureMin());
-                    List list = weatherResponse.getHourly().getData();
-
-                    Log.d("Tag","List hourly"+ list);
+                    list = weatherResponse.getHourly().getData();
+                    DataPoint dp = (DataPoint) list.get(0);
+                    LTemp = String.valueOf(dp.getTemperature());
+                    LSummary = dp.getSummary();
+                    Log.d("Tag2", "List hourly" + list);
+                    Log.d("tag2", String.valueOf(dp.getTemperature()));
+                    Toast.makeText(MainActivity.this, String.valueOf(dp.getTemperature()), Toast.LENGTH_SHORT).show();
+                     l = weatherResponse.getDaily().getData();
+                    DataPoint dataPoint = (DataPoint)l.get(1);
+                    LTempW = String.valueOf(dataPoint.getTemperature()) ;
+                    LSummaryW= String.valueOf(dataPoint.getSummary()) ;
+                    Log.d("tag3", String.valueOf(dataPoint.getSummary()));
+                    Toast.makeText(MainActivity.this, String.valueOf(dataPoint.getSummary()), Toast.LENGTH_SHORT).show();
                     UpdateUI(weatherData);
+
                 }
 
                 @Override

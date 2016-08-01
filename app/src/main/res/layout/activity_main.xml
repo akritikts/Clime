@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/weather_info"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/weather_info"
-    android:orientation="vertical"
     android:background="#B2EBF2"
+    android:orientation="vertical"
     tools:context=".Activities.MainActivity">
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
-        android:minHeight="?attr/actionBarSize"/>
+        android:minHeight="?attr/actionBarSize" />
 
 
     <RelativeLayout
@@ -40,9 +41,9 @@
                     android:layout_alignParentRight="true"
                     android:layout_margin="0dp"
                     android:padding="0dp"
+                    android:text="No location Available"
                     android:textColor="#000000"
-                    android:textSize="15sp"
-                    android:text="No location Available"/>
+                    android:textSize="15sp" />
 
             </LinearLayout>
 
@@ -56,7 +57,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -70,10 +71,10 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="0dp"
                             android:padding="0dp"
+                            android:text="00.00"
                             android:textColor="#000000"
                             android:textSize="30sp"
-                            android:textStyle="bold"
-                            android:text="00.00"/>
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/temp_unit"
@@ -82,140 +83,76 @@
                             android:layout_alignBaseline="@+id/temp"
                             android:layout_toRightOf="@+id/temp"
                             android:padding="0dp"
-                            android:textColor="#000000"
-                            android:text="C"/>
+                            android:text="C"
+                            android:textColor="#000000" />
 
                     </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/max_temp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:textColor="#000000"
-                            android:textSize="15sp"
-                            android:text="Max T : 00.00"/>
-
-                        <TextView
-                            android:id="@+id/min_temp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:textColor="#000000"
-                            android:textSize="15sp"
-                            android:text="Min T : 00.00"/>
-
-                    </LinearLayout>
-
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
 
                     <TextView
                         android:id="@+id/sky_desc"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
                         android:padding="0dp"
+                        android:text="No data available"
                         android:textColor="#000000"
-                        android:textSize="20sp"
-                        android:text="No data available"/>
+                        android:textSize="20sp" />
 
                 </LinearLayout>
 
 
             </LinearLayout>
 
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="4"
-                android:orientation="vertical">
+                android:layout_weight="3.5"
+                android:orientation="horizontal">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
+
 
                     <TextView
                         android:id="@+id/humidity"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:text="Humidity :  0.0"
                         android:textColor="#000000"
-                        android:textSize="15sp"
-                        android:text="Humidity :  0.0"/>
+                        android:textSize="15sp" />
 
                     <TextView
                         android:id="@+id/cloud"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:text="Pressure : 00.00"
                         android:textColor="#000000"
                         android:textSize="15sp" />
-
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/precip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:text="Precipitation : 0.0"
                         android:textColor="#000000"
-                        android:textSize="15sp"
-                        android:text="Precipitation : 0.0"/>
+                        android:textSize="15sp" />
 
                     <TextView
                         android:id="@+id/dew"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:text="DewPoint : 0.0"
                         android:textColor="#000000"
-                        android:textSize="15sp"
-                        android:text="DewPoint : 0.0"/>
+                        android:textSize="15sp" />
 
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="4"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
-
-                    <ImageButton
-                        android:id="@+id/ref"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentLeft="true"
-                        android:layout_gravity="center"
-                        android:src="@mipmap/refresh"
-                        android:background="#B2EBF2"/>
 
                 </LinearLayout>
 
@@ -230,6 +167,14 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:layout_weight="1">
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="horizontal">
 
@@ -238,24 +183,32 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:gravity="right"
+                            android:padding="3dp"
+                            android:text="HH"
                             android:textColor="#000000"
-                            android:textSize="10dp" />
+                            android:textSize="20dp" />
 
                         <TextView
                             android:id="@+id/current_time_min"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:text="MM"
                             android:textColor="#000000"
-                            android:textSize="10dp" />
+                            android:textSize="20dp" />
 
-                        <TextView
-                            android:id="@+id/current_time_sec"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                        <ImageButton
+                            android:id="@+id/ref"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_alignParentLeft="true"
+                            android:layout_gravity="center"
                             android:layout_weight="1"
-                            android:textColor="#000000"
-                            android:textSize="10sp" />
+                            android:background="#00000000"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/refrsh" />
 
                     </LinearLayout>
 
@@ -264,26 +217,28 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="horizontal">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Last Updated : "
-                                android:textSize="12sp"/>
+                                android:textSize="12sp" />
+
                             <TextView
                                 android:id="@+id/date_day"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
+                                android:text="unavailable"
                                 android:textColor="#000000"
-                                android:textSize="12sp"
-                                android:text="unavailable"/>
+                                android:textSize="12sp" />
 
                         </LinearLayout>
-
 
 
                     </LinearLayout>
@@ -311,25 +266,25 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="6"
+        android:layout_weight="3"
         android:orientation="vertical"
         android:padding="3dp">
 
-        <TextView
-            android:id="@+id/hourly"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:textColor="#000000"
-            android:textSize="15sp"
-            android:text="No description available"/>
-
-        <ListView
+        <android.support.v4.view.ViewPager
+            android:id="@+id/vw_pager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:layout_weight="1">
 
-        </ListView>
+            <android.support.v4.view.PagerTabStrip
+                android:id="@+id/pager_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:paddingBottom="4dp"
+                android:paddingTop="4dp" />
+        </android.support.v4.view.ViewPager>
+
 
     </LinearLayout>
 
